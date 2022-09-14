@@ -1,4 +1,4 @@
-# goc-rasterizer-tutorial
+# builtopia-rasterizer-tutorial
 A step by step tutorial to help you build a rasterizer
 
 ## The software product goal of this tutorial
