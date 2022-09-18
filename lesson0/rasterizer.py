@@ -1,8 +1,8 @@
 import numpy as np
 import struct
-from tkinter import *
-from PIL import ImageTk, Image
+from PIL import Image
 from pygltflib import GLTF2
+import matplotlib.pyplot as plt
 
 I_WIDTH = 800
 I_HEIGHT = 600
@@ -10,18 +10,9 @@ RGBS = np.zeros(I_WIDTH * I_HEIGHT * 3, np.uint8).reshape(I_HEIGHT, I_WIDTH, 3)
 
 def drawPixels():
 
-    window = Tk()
-    window.resizable()
-    window.title("Gocyber - rasterizer")
-    Label(window,text="rasterizer output image",font=('bold',20)).pack()
-
-    frame=Frame(window, width = I_WIDTH, height = I_HEIGHT, bg='red')
-    frame.pack()
-    img = ImageTk.PhotoImage(Image.fromarray(RGBS, 'RGB'))
-    image_label = Label(frame, image = img)
-    image_label.pack()
-
-    mainloop()
+    i = Image.fromarray(RGBS, 'RGB')
+    plt.imshow(i)
+    plt.show()
 
 def loadGltf(path):
     gltf = GLTF2().load(path)
