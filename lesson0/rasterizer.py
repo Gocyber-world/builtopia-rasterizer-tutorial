@@ -2,7 +2,6 @@ import numpy as np
 import struct
 from PIL import Image
 from pygltflib import GLTF2
-import matplotlib.pyplot as plt
 
 I_WIDTH = 800
 I_HEIGHT = 600
@@ -11,8 +10,7 @@ RGBS = np.zeros(I_WIDTH * I_HEIGHT * 3, np.uint8).reshape(I_HEIGHT, I_WIDTH, 3)
 def drawPixels():
 
     i = Image.fromarray(RGBS, 'RGB')
-    plt.imshow(i)
-    plt.show()
+    i.show()
 
 def loadGltf(path):
     gltf = GLTF2().load(path)
