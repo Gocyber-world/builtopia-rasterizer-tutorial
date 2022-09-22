@@ -8,3 +8,10 @@ A python based glTF model viewer with GUI and a rich feature set, using rasteriz
   - glTF2.0 standard and file structure
   - Classic CG related concepts & algorithms & data-structures, for example: octree/animation/morphtarget
   - Ice and fire to manually write a homemade ENGINE
+
+## Run the code:
+  - make sure to install python3 on your device
+  - pip3 install numpy
+  - pip3 install pillow
+  - pip3 install pygltflib
+  - python3 rasterizer.py
