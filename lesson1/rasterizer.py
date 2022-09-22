@@ -8,6 +8,12 @@ I_HEIGHT = 600
 I_SCALE = 200
 RGBS = np.zeros(I_WIDTH * I_HEIGHT * 3, np.uint8).reshape(I_HEIGHT, I_WIDTH, 3)
 WHITE = (255,255,255)
+CAMERA_MATRIX = np.array([
+    [1,0,0,0],
+    [0,1,0,0],
+    [0,0,1,0],
+    [0,0,0,1]
+])
 
 
 def drawPixels():
@@ -95,7 +101,9 @@ def loadGltf(path):
     return primitives
 
 def rasterizeLine(startf, endf):
-    drawLine(positionToPixelPos(startf), positionToPixelPos(endf))
+    start = np.matmul(startf, CAMERA_MATRIX)
+    end = np.matmul(endf, CAMERA_MATRIX)
+    drawLine(positionToPixelPos(start), positionToPixelPos(end))
 
 def drawPixel(position, color):
     x = position[0]
@@ -137,9 +145,23 @@ def drawLine(start, end):
             x = startx + (int)((endx - startx)*(y - starty)/(endy - starty))
             drawPixel((x,y), WHITE)
     drawPixel((endx,endy), WHITE)
+
+def norm(v):
+    norm = np.linalg.norm(v)
+    if norm == 0: 
+       return v
+    return v / norm
+
+def genCamMatrixByCamPos(position):
+    z = norm(position)
+    x = norm(np.cross((0,1,0), z))
+    y = norm(np.cross(z, x))
+    return np.array([x,y,z]).transpose()
     
 
 data = loadGltf("monkey.gltf")
+CAMERA_MATRIX = genCamMatrixByCamPos((1,5,1))
+print(CAMERA_MATRIX)
 for p in data:
     positions = p["vertices"]
     indices = p["indices"]
