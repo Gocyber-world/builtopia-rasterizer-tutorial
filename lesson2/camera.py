@@ -11,12 +11,16 @@ class Camera:
         self.fovy = 45
         self.near = 1
         self.aspect = 1
-        self.height = self.near*np.tan(self.fovy/2)*2
-        self.width = self.height*self.aspect
+        self.height = 1
+        self.width = 1
 
     def set(self, position, look_at, up, fovy, near):
         if (np.array_equal(position, look_at)):
             print ("failed: position is equal to look_at")
+            return
+
+        if (fovy <= 0 or fovy >= 180):
+            print ("failed: fov exceeds limit")
             return
 
         self.position = position
@@ -24,6 +28,8 @@ class Camera:
         self.up = self.norm(up)
         self.fovy = fovy
         self.near = near
+        self.height = self.near*np.tan(self.fovy*np.pi/360)*2
+        self.width = self.height*self.aspect
 
     def get_perspective(self):
         perspective_matrix = np.array([
