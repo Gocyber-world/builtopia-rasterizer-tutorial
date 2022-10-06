@@ -28,13 +28,13 @@ class Rasterizer:
 
     def generate_pixel_positions(self, positions):
         pixel_positions = []
-        camera_matrix = self.camera.get_matrix()
+        projection_matrix = self.camera.get_perspective().transpose()
         for pos in positions:
             pos.append(1)   # [x, y, z] -> [x, y, z, 1]
-            camera_pos = np.matmul(pos, camera_matrix) # translate, rotate, scale
+            camera_pos = np.matmul(pos, projection_matrix)
 
             # fit points to canvas
-            x, y = camera_pos[0], camera_pos[1]
+            x, y = camera_pos[0]/camera_pos[3], camera_pos[1]/camera_pos[3]
             px = (int)(x * self.scale + self.width/2)
             py = (int)(-1 * y * self.scale + self.height/2)
             pixel_positions.append((px, py))
@@ -78,5 +78,12 @@ class Rasterizer:
         self.rgbs[y][x] = color
 
 camera = Camera()
-rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "monkey.gltf")
+camera.set(
+    position=[5, 6, 7],
+    look_at=[0, 0, 0],
+    up=[0, 1, 0],
+    fovy=45,
+    near=4
+)
+rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "box.gltf")
 rasterizer.draw_primitives().show()
