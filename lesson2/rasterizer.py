@@ -3,9 +3,6 @@ from PIL import Image
 from gltfLoader import GltfLoader
 from camera import Camera
 
-I_WIDTH = 800
-I_HEIGHT = 600
-I_SCALE = 200
 COLOR_WHITE = (255,255,255)
 
 class Rasterizer:
@@ -76,14 +73,3 @@ class Rasterizer:
             return
 
         self.rgbs[y][x] = color
-
-camera = Camera()
-camera.set(
-    position=[5, 6, 7],
-    look_at=[0, 0, 0],
-    up=[0, 1, 0],
-    fovy=45,
-    near=4
-)
-rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "box.gltf")
-rasterizer.draw_primitives().show()
