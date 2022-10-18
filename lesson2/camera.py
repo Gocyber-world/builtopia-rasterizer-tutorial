@@ -56,8 +56,8 @@ class Camera:
         #  旋转矩阵的齐次矩阵 
         rot = np.array([
 
-            [v[0],v[1],v[2],0],
             [u[0],u[1],u[2],0],
+            [v[0],v[1],v[2],0],
             [n[0],n[1],n[2],0],
             [0,0,0,1]
         ])
@@ -67,6 +67,7 @@ class Camera:
             [0,0,1,self.position[2]],
             [0,0,0,1],
         ])
+        # 先旋转再位移
         return np.matmul(rot,tran)
 
     #  透视视图矩阵 

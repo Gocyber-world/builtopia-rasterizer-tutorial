@@ -13,7 +13,7 @@ WHITE = (255,255,255)
 
 camera = Camera()
 camera.set(
-    position=[1, 10, 1],
+    position=[10, 10, 1],
     look_at=[0, 0, 0],
     up=[0, 1, 0],
     fov=45,
@@ -21,7 +21,7 @@ camera.set(
 )
 
 
-CAMERA_MATRIX = camera.orthographic_matrix().transpose()
+CAMERA_MATRIX = camera.perspective_matrix().transpose()
 
 def drawPixels():
 
