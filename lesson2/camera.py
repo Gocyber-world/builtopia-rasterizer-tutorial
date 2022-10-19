@@ -46,7 +46,7 @@ class Camera:
     #  "世界->相机空间矩阵 https://zhuanlan.zhihu.com/p/561394626 
     def world_to_camera_matrix(self):
         
-        n = self.norm(np.subtract(self.look_at,self.position))
+        n = self.norm(np.subtract(self.position,self.look_at))
         up = self.norm(self.up)
         #  up与朝向在同一轴上,点积为 +-1,选取x轴作为相机up 
         if(np.abs(np.dot(n,up) == 1)):
@@ -67,9 +67,9 @@ class Camera:
         print(rot)
         # 文档上有个错误，【3】【3】处应该为1
         tran = np.array([
-            [1,0,0,self.position[0]],
-            [0,1,0,self.position[1]],
-            [0,0,1,self.position[2]],
+            [1,0,0,-self.position[0]],
+            [0,1,0,-self.position[1]],
+            [0,0,1,-self.position[2]],
             [0,0,0,1],
         ])
         # 先旋转再位移
