@@ -1,3 +1,4 @@
+from array import array
 import numpy as np
 
 axis_x = [1,0,0]
@@ -25,7 +26,7 @@ class Camera:
         self.height = 1
         self.width = 1
     
-    def set(self, position, look_at, up, fov, near):
+    def set(self, position, look_at, up, fov, near,far):
         if (np.array_equal(position, look_at)):
             print ("failed: position is equal to look_at")
             return
@@ -39,10 +40,12 @@ class Camera:
         self.look_at = look_at
         self.up = up
         self.near = near
+        self.far = far
 
 
     #  "世界->相机空间矩阵 https://zhuanlan.zhihu.com/p/561394626 
     def world_to_camera_matrix(self):
+        
         n = self.norm(np.subtract(self.look_at,self.position))
         up = self.norm(self.up)
         #  up与朝向在同一轴上,点积为 +-1,选取x轴作为相机up 
@@ -61,6 +64,8 @@ class Camera:
             [n[0],n[1],n[2],0],
             [0,0,0,1]
         ])
+        print(rot)
+        # 文档上有个错误，【3】【3】处应该为1
         tran = np.array([
             [1,0,0,self.position[0]],
             [0,1,0,self.position[1]],
@@ -80,29 +85,43 @@ class Camera:
 
     # 正交投影矩阵
     def M_orthographic(self):
-        return np.array([
-            [1,0,0,0],
-            [0,1,0,0],
-            [0,0,0,0],
-            [0,0,0,1],
-        ])
+        halfSize = [self.width,self.height]
+        return self.setOrthographic(-halfSize[0],halfSize[0],-halfSize[1],halfSize[1],self.near,self.far)
 
     # 透视投影矩阵 https://zhuanlan.zhihu.com/p/359128442
     def M_perspective(self):
-        self.getPerspectiveHalfSize()
-        return np.array([
-            [self.near*2/self.height, 0, 0, 0],
-            [0, self.near*2/self.width, 0, 0],
-            [0, 0, 1, 0],
-            [0, 0, -1, 0]
-        ])
+        halfSize = self.getPerspectiveHalfSize()
+        return self.setFrustum(-halfSize[0],halfSize[0],-halfSize[1],halfSize[1],self.near,self.far)
     
     def getPerspectiveHalfSize(self):
-        self.width = self.near * np.tan(self.fov * np.pi / 360) *2
-        self.height = self.width / self.aspect
+        width = self.near * np.tan(self.fov * np.pi / 360) *2
+        height = width / self.aspect
+        return [width,height]
 
     def norm(self,v):
         norm = np.linalg.norm(v)
         if norm == 0: 
             return v
         return v / norm
+
+    def setFrustum(self,left, right, bottom, top, znear, zfar):
+        temp1 = 2 * znear
+        temp2 = right - left
+        temp3 = top - bottom
+        temp4 = zfar - znear
+
+        return np.array([
+            [temp1 / temp2, 0,              (right + left) / temp2,     0],
+            [0,             temp1 / temp3,  (top + bottom) / temp3,     0],
+            [0,             0,              (-zfar - znear) / temp4,    (-temp1 * zfar) / temp4],
+            [0,             0,              -1,                         0],
+        ])
+    
+
+    def setOrthographic(self,left, right, bottom, top, near, far):
+        return np.array([
+            [2 / (right - left),    0,                      0,                      -(right + left) / (right - left)],
+            [0,                     2 / (top - bottom),     0,                      -(top + bottom) / (top - bottom)],
+            [0,                     0,                      -2 / (far - near),      -(far + near) / (far - near)],
+            [0,                     0,                      0,                      1],
+        ])

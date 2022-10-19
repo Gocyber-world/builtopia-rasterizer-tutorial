@@ -13,15 +13,16 @@ WHITE = (255,255,255)
 
 camera = Camera()
 camera.set(
-    position=[10, 10, 1],
-    look_at=[0, 0, 0],
+    position=[1, 10, 1],
+    look_at=[0, 2, 0],
     up=[0, 1, 0],
     fov=45,
-    near=1
+    near=1,
+    far=1000,
 )
 
 
-CAMERA_MATRIX = camera.perspective_matrix().transpose()
+CAMERA_MATRIX = camera.orthographic_matrix().transpose()
 
 def drawPixels():
 
@@ -43,7 +44,7 @@ def loadGltf(path):
         buffer = gltf.buffers[bufferView.buffer]
         data = gltf.get_data_from_buffer_uri(buffer.uri)
         dataLength = (int)(bufferView.byteLength / accessor.count)
-        
+
         # pull each vertex from the binary buffer and convert it into a tuple of python floats
         vertices = []
         for i in range(accessor.count):
@@ -134,7 +135,7 @@ def positionToPixelPos(position):
     return (x1, y1)
 
 def drawLine(start, end):
-    
+
     startx = start[0]
     starty = start[1]
     endx = end[0]
@@ -163,7 +164,7 @@ def norm(v):
        return v
     return v / norm
 
-    
+
 
 data = loadGltf("monkey.gltf")
 
