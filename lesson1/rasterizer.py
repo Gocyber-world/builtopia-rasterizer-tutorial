@@ -107,10 +107,11 @@ def loadGltf(path):
     return primitives
 
 def rasterizeLine(startf, endf):
-    x = np.array([startf[0], startf[1], startf[2], 1]).transpose()
-    y = np.array([endf[0], endf[1], endf[2], 1]).transpose()
-    startCam = np.matmul(CAMERA_TRANSFORM_MATRIX, x)
-    endCam = np.matmul(CAMERA_TRANSFORM_MATRIX, y)
+    x = np.array([startf[0], startf[1], startf[2], 1])
+    y = np.array([endf[0], endf[1], endf[2], 1])
+    transformClipMat = np.matmul(CAMERA_CLIP_MATRIX, CAMERA_TRANSFORM_MATRIX)
+    startCam = np.matmul(transformClipMat, x)
+    endCam = np.matmul(transformClipMat, y)
     drawLine(positionToPixelPos(startCam), positionToPixelPos(endCam))
 
 def drawPixel(position, color):
@@ -124,10 +125,8 @@ def drawPixel(position, color):
     RGBS[y][x][2] = color[2]
 
 def positionToPixelPos(position):
-    clipPos = np.matmul(CAMERA_CLIP_MATRIX, np.array(position).transpose())
-    # temPos = np.matmul(np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,1,0]]), position)
-    x = clipPos[0] / clipPos[3]
-    y = clipPos[1] / clipPos[3]
+    x = position[0]
+    y = position[1]
     u = (int)(x * I_SCALE + I_WIDTH/2)
     v = (int)(-1 * y * I_SCALE + I_HEIGHT/2)
     return (u, v)
@@ -169,7 +168,11 @@ def genCamTransformMatrix(position, lookat, up):
     # 3. calTransformMatrix
     transformVector = (position[0] - lookat[0], position[1] - lookat[1], position[2] - lookat[2])
     forwardCamera = -norm(transformVector)
-    rightCamera = norm(np.cross(up, forwardCamera))
+    tmpUp = up
+    if (abs(np.dot(forwardCamera, norm(up))) == 1):
+        tmpUp = (up[1], up[0], up[2])
+
+    rightCamera = norm(np.cross(tmpUp, forwardCamera))
     upCamera = norm(np.cross(forwardCamera, rightCamera))
 
     return np.array([
@@ -183,14 +186,15 @@ def genCamTransformMatrix(position, lookat, up):
 def genCamClipMatrix(fov, nearClip, farClip):
     aspect = I_WIDTH / I_HEIGHT
     fov = np.radians(fov)
-    A = farClip / (farClip - nearClip)
-    B = (farClip * nearClip) / (farClip - nearClip)
-    return np.array([[1/(aspect * np.tan(fov/2)), 0, 0, 0], [0, 1/np.tan(fov/2), 0, 0], [0 ,0, A, B], [0, 0, 1, 0]])
-
+    E = np.cos(fov / 2)
+    A = (nearClip + farClip)/(nearClip - farClip)
+    B = -(2 *farClip * nearClip) / (nearClip - farClip)
+    return np.array([[E/(aspect *nearClip), 0, 0, 0], [0, E/nearClip, 0, 0], [0 ,0, A, B],[0 ,0, 1, 0]])
+    # return np.array([[nearClip, 0,0,0], [0, nearClip, 0, 0], [0,0,1,0]])
 
 
 data = loadGltf("monkey.gltf")
-CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((5,5,5), (0,0,0), (0,1,0))
+CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((0,0,2), (0,0,0), (0,1,0))
 print(CAMERA_TRANSFORM_MATRIX)
 CAMERA_CLIP_MATRIX = genCamClipMatrix(45, 1, 1000)
 print(CAMERA_CLIP_MATRIX)

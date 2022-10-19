@@ -91,6 +91,8 @@ def loadGltf(path):
         })
     return primitives
 
+
+
 for i in range(200):
     RGBS[i][100][0] = 0
     RGBS[i][100][1] = 255
