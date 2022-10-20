@@ -14,4 +14,5 @@ A python based glTF model viewer with GUI and a rich feature set, using rasteriz
   - pip3 install numpy
   - pip3 install pillow
   - pip3 install pygltflib
-  - python3 rasterizer.py
+  - (for lesson2 and later)
+  - python3 main.py
