@@ -43,9 +43,10 @@ class Camera:
         self.far = far
 
 
-    #  "世界->相机空间矩阵 https://zhuanlan.zhihu.com/p/561394626 
+    #  "世界->相机空间矩阵
     def world_to_camera_matrix(self):
-        
+        # 此处应为eye - target 如果使用target - eye，则坐标系从右手坐标系转换到了左手坐标系，会导致图像镜像
+        # 见文档 https://blog.csdn.net/weixin_44179561/article/details/124149297
         n = self.norm(np.subtract(self.position,self.look_at))
         up = self.norm(self.up)
         #  up与朝向在同一轴上,点积为 +-1,选取x轴作为相机up 
@@ -56,7 +57,10 @@ class Camera:
         
         v = self.norm(np.cross(n,up))
         u = self.norm(np.cross(v,n))
-        #  旋转矩阵的齐次矩阵 
+        # 旋转矩阵的齐次矩阵 推导见上链接 
+        # 原理是 空间内一点可以同时使用世界坐标系的三周作为一个基去表示，也可以使用相机的三轴作为基表示，
+        # 此时两组不同的解就对应两个坐标系内的坐标，因此相机的三轴可以直接写成一个矩阵表示 相机->世界 的旋转， 
+        # 由于旋转矩阵是正交矩阵 此处世界->相机即可使用其转置矩阵作为逆矩阵
         rot = np.array([
 
             [u[0],u[1],u[2],0],
@@ -65,7 +69,7 @@ class Camera:
             [0,0,0,1]
         ])
         print(rot)
-        # 文档上有个错误，【3】【3】处应该为1
+        # 位移矩阵就是将相机坐标系平移至原点与世界坐标系重合
         tran = np.array([
             [1,0,0,-self.position[0]],
             [0,1,0,-self.position[1]],
@@ -104,6 +108,7 @@ class Camera:
             return v
         return v / norm
 
+    # 透视投影矩阵，原理是根据z和far near将z对应的平面等比缩放 此处抄的playcanvas中的矩阵
     def setFrustum(self,left, right, bottom, top, znear, zfar):
         temp1 = 2 * znear
         temp2 = right - left
@@ -117,7 +122,7 @@ class Camera:
             [0,             0,              -1,                         0],
         ])
     
-
+    # 正交投影矩阵 此处抄的playcanvas中的矩阵 推导过程见文档
     def setOrthographic(self,left, right, bottom, top, near, far):
         return np.array([
             [2 / (right - left),    0,                      0,                      -(right + left) / (right - left)],
