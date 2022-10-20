@@ -2,6 +2,7 @@ import numpy as np
 from PIL import Image
 from gltfLoader import GltfLoader
 from camera import Camera
+import random
 
 COLOR_WHITE = (255,255,255)
 
@@ -14,6 +15,10 @@ class Rasterizer:
         loader = GltfLoader()
         self.primitives = loader.load(file)
         self.rgbs = np.zeros(self.width * self.height * 3, np.uint8).reshape(self.height, self.width, 3)
+        self.depth_map = np.zeros(self.width * self.height, np.float32).reshape(self.height, self.width)
+        for x in range(0, self.width):
+            for y in range(0, self.height):
+                self.depth_map[y][x] = 1000
 
     def draw_primitives(self):
         for primitive in self.primitives:
@@ -32,9 +37,11 @@ class Rasterizer:
 
             # fit points to canvas
             x, y = camera_pos[0]/camera_pos[3], camera_pos[1]/camera_pos[3]
+            depth = camera_pos[2]
+
             px = (int)(x * self.scale + self.width/2)
             py = (int)(-1 * y * self.scale + self.height/2)
-            pixel_positions.append((px, py))
+            pixel_positions.append((px, py, depth))
 
         return pixel_positions
 
@@ -43,9 +50,54 @@ class Rasterizer:
             a = positions[indices[i]]
             b = positions[indices[i + 1]]
             c = positions[indices[i + 2]]
-            self.draw_line(a, b)
-            self.draw_line(b, c)
-            self.draw_line(c, a)
+            #self.draw_line(a, b)
+            #self.draw_line(b, c)
+            #self.draw_line(c, a)
+            avg_depth = (a[2] + b[2] + c[2])/3
+            color_value = int(255 + avg_depth * 30)
+            color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+            self.draw_triangle(a, b, c, color, avg_depth)
+
+    def find_min(self, a, b, c):
+        x = min(a[0], b[0], c[0])
+        y = min(a[1], b[1], c[1])
+        return (x,y)
+    
+    def find_max(self, a, b, c):
+        x = max(a[0], b[0], c[0])
+        y = max(a[1], b[1], c[1])
+        return (x,y)
+
+    def sign(self, t, a, b):
+        # TODO: Optimize!!
+        # axis z
+        z = np.array([0,0,1])
+        # vector ab
+        v1 = np.array([b[0] - a[0], b[1] - a[1], 0])
+        # vector at
+        v2 = np.array([t[0] - a[0], t[1] - a[1], 0])
+
+        return np.dot(z, np.cross(v1, v2)) > 0
+
+    def is_inside_triangle(self, t, a, b, c):
+        sign1 = self.sign(t, a, b)
+        sign2 = self.sign(t, b, c)
+        sign3 = self.sign(t, c, a)
+
+        return (sign3 == sign2) and (sign2 == sign1)
+        
+    
+    def draw_triangle(self, a, b, c, color, depth):
+        # TODO: Optimize!!
+        min = self.find_min(a, b, c)
+        max = self.find_max(a, b, c)
+        for x in range(min[0], max[0]):
+            for y in range(min[1], max[1]):
+                if self.is_inside_triangle((x, y), a, b, c):
+                    old_depth = self.depth_map[y][x]
+                    if -depth < old_depth:
+                        self.draw_pixel((x,y), color)
+                        self.depth_map[y][x] = -depth
 
     def draw_line(self, start, end):
         startx, starty = start
