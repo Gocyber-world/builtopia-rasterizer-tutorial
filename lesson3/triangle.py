@@ -22,22 +22,19 @@ class Triangle:
         self.maxy = max(a.y, b.y, c.y)
 
     def calc_loop_vec(self, a: Vertice, b: Vertice, c: Vertice):
-        self.ab = self.vec3(a, b)
-        self.bc = self.vec3(b, c)
-        self.ca = self.vec3(c, a)
-
-    def vec3(self, start: Vertice, end: Vertice):
-        return (end.x - start.x, end.y - start.y, 0)
+        self.ab = self.vec(a, b)
+        self.bc = self.vec(b, c)
+        self.ca = self.vec(c, a)
 
     def contains(self, point: Vertice):
-        sign1 = np.dot(self.z, self.cross3(self.ab, self.vec3(self.a, point))) > 0
-        sign2 = np.dot(self.z, self.cross3(self.bc, self.vec3(self.b, point))) > 0
-        sign3 = np.dot(self.z, self.cross3(self.ca, self.vec3(self.c, point))) > 0
+        sign1 = self.cross(self.ab, self.vec(self.a, point)) > 0
+        sign2 = self.cross(self.bc, self.vec(self.b, point)) > 0
+        sign3 = self.cross(self.ca, self.vec(self.c, point)) > 0
 
         return (sign3 == sign2) and (sign2 == sign1)
 
-    def cross3(self, left, right):
-        x = (left[1] * right[2]) - (left[2] * right[1])
-        y = (left[2] * right[0]) - (left[0] * right[2])
-        z = (left[0] * right[1]) - (left[1] * right[0])
-        return (x, y, z)
+    def vec(self, start: Vertice, end: Vertice):
+        return (end.x - start.x, end.y - start.y)
+
+    def cross(self, left, right):
+        return (left[0] * right[1]) - (left[1] * right[0])

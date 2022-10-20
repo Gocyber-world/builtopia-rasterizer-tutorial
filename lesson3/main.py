@@ -15,5 +15,5 @@ camera.set(
     near=1
 )
 
-rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "box.gltf")
+rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "monkey.gltf")
 cProfile.run("rasterizer.draw_primitives().show()")
