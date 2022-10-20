@@ -192,7 +192,7 @@ def genCamClipMatrix(fov, nearClip, farClip):
     return np.array([[E/(aspect *nearClip), 0, 0, 0], [0, E/nearClip, 0, 0], [0 ,0, A, B],[0 ,0, 1, 0]])
 
 data = loadGltf("monkey.gltf")
-CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((0, 2, 3), (0,0,0), (0,1,0))
+CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((2, 2, 2), (0,0,0), (0,1,0))
 print(CAMERA_TRANSFORM_MATRIX)
 CAMERA_CLIP_MATRIX = genCamClipMatrix(45, 1, 1000)
 print(CAMERA_CLIP_MATRIX)
