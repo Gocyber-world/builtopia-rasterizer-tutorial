@@ -125,10 +125,10 @@ def drawPixel(position, color):
     RGBS[y][x][2] = color[2]
 
 def positionToPixelPos(position):
-    x = position[0] / position[2]
-    y = position[1] / position[2]
-    u = (int)(x * I_SCALE + I_WIDTH/2)
-    v = (int)(-1 * y * I_SCALE + I_HEIGHT/2)
+    x = position[0] / position[3]
+    y = position[1] / position[3]
+    u = (int)((x * I_SCALE + I_WIDTH/2) )
+    v = (int)((-1 * y * I_SCALE + I_HEIGHT/2))
     return (u, v)
 
 def drawLine(start, end):
@@ -167,7 +167,7 @@ def genCamTransformMatrix(position, lookat, up):
     # 2. up + transformVector => forwardCamera, upCamera, rightCamera
     # 3. calTransformMatrix
     transformVector = (position[0] - lookat[0], position[1] - lookat[1], position[2] - lookat[2])
-    forwardCamera = -norm(transformVector)
+    forwardCamera = norm(transformVector)
     tmpUp = up
     if (abs(np.dot(forwardCamera, norm(up))) == 1):
         tmpUp = (up[1], up[0], up[2])
@@ -191,9 +191,8 @@ def genCamClipMatrix(fov, nearClip, farClip):
     B = -(2 *farClip * nearClip) / (nearClip - farClip)
     return np.array([[E/(aspect *nearClip), 0, 0, 0], [0, E/nearClip, 0, 0], [0 ,0, A, B],[0 ,0, 1, 0]])
 
-
 data = loadGltf("monkey.gltf")
-CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((5, 0, 5), (0,0,0), (0,1,0))
+CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((0, 2, 3), (0,0,0), (0,1,0))
 print(CAMERA_TRANSFORM_MATRIX)
 CAMERA_CLIP_MATRIX = genCamClipMatrix(45, 1, 1000)
 print(CAMERA_CLIP_MATRIX)
