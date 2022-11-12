@@ -1,4 +1,5 @@
 import numpy as np
+from triangle import Vertice, Triangle
 
 class DepthManager:
     def __init__(self, width, height):
@@ -18,14 +19,18 @@ class DepthManager:
         else:
             self.depth_ratio = 255/abs(self.max_depth - self.min_depth)
 
-    def get_color(self, depth):
-        # reutrn normalized color value
-        return int(255 + (depth - self.max_depth) * self.depth_ratio)
+    def get_depth(self, triangle: Triangle, x, y):
+        return (triangle.a.depth + triangle.b.depth + triangle.c.depth)/3
 
-    def override(self, x, y, depth):
-        old_depth = self.depth_map[y][x]
-        if depth > old_depth:
-            self.depth_map[y][x] = depth
+    def get_color(self, depth):
+        # reutrn normalized color(0-255)
+        color_value = int(255 + (depth - self.max_depth) * self.depth_ratio)
+        return (color_value, color_value, color_value)
+
+    def override(self, point: Vertice):
+        old_depth = self.depth_map[point.y][point.x]
+        if point.depth > old_depth:
+            self.depth_map[point.y][point.x] = point.depth
             return True
         else:
             return False

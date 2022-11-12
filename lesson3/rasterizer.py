@@ -52,12 +52,12 @@ class Rasterizer:
             self.draw_triangle(Triangle(a, b, c))
 
     def draw_triangle(self, triangle: Triangle):
-        avg_depth = (triangle.a.depth + triangle.b.depth + triangle.c.depth)/3
-        color_value = self.depth_manager.get_color(avg_depth)
-        color = (color_value, color_value, color_value)
         for x in range(triangle.minx, triangle.maxx):
             for y in range(triangle.miny, triangle.maxy):
-                if triangle.contains(Vertice(x, y)) and self.depth_manager.override(x, y, avg_depth):
+                depth = self.depth_manager.get_depth(triangle, x, y)
+                point = Vertice(x, y, depth)
+                if triangle.contains(point) and self.depth_manager.override(point):
+                    color = self.depth_manager.get_color(depth)
                     self.draw_pixel(x, y, color)
 
     def draw_triangle_outline(self, triangle: Triangle):
