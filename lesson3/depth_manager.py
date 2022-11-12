@@ -22,9 +22,9 @@ class DepthManager:
     def get_depth(self, triangle: Triangle, x, y):
         return (triangle.a.depth + triangle.b.depth + triangle.c.depth)/3
 
-    def get_color(self, depth):
+    def get_color(self, point: Vertice):
         # reutrn normalized color(0-255)
-        color_value = int(255 + (depth - self.max_depth) * self.depth_ratio)
+        color_value = int(255 + (point.depth - self.max_depth) * self.depth_ratio)
         return (color_value, color_value, color_value)
 
     def override(self, point: Vertice):
