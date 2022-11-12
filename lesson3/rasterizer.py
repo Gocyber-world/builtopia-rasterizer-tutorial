@@ -6,7 +6,7 @@ from triangle import Vertice, Triangle
 from depth_manager import DepthManager
 
 class Rasterizer:
-    def __init__(self, width, height, scale, camera: Camera, file):
+    def __init__(self, width: int, height: int, scale: int, camera: Camera, file: str) -> None:
         self.width = width
         self.height = height
         self.scale = scale
@@ -16,7 +16,7 @@ class Rasterizer:
         self.color_map = np.zeros((self.height, self.width, 3), np.uint8)
         self.depth_manager = DepthManager(width, height)
 
-    def draw_primitives(self):
+    def draw_primitives(self) -> Image:
         for primitive in self.primitives:
             positions = self.generate_pixel_positions(primitive["vertices"])
             self.depth_manager.calc_depth_ratio()
@@ -25,7 +25,7 @@ class Rasterizer:
 
         return Image.fromarray(self.color_map, 'RGB')
 
-    def generate_pixel_positions(self, positions):
+    def generate_pixel_positions(self, positions: list) -> list:
         pixel_positions = list()
         projection_matrix = self.camera.get_perspective().transpose()
         for pos in positions:
@@ -43,7 +43,7 @@ class Rasterizer:
 
         return pixel_positions
 
-    def draw_triangles(self, positions, indices):
+    def draw_triangles(self, positions: list, indices: list) -> None:
         for i in range(0, len(indices), 3):
             a = positions[indices[i]]
             b = positions[indices[i + 1]]
@@ -51,7 +51,7 @@ class Rasterizer:
             # self.draw_triangle_outline(Triangle(a, b, c))
             self.draw_triangle(Triangle(a, b, c))
 
-    def draw_triangle(self, triangle: Triangle):
+    def draw_triangle(self, triangle: Triangle) -> None:
         # use barycentric coordinates
         step = 1.0/triangle.max_edge
         for p in np.arange(0, 1, step):
@@ -60,19 +60,19 @@ class Rasterizer:
             for q in np.arange(0, 1 - p, step):
                 self.draw_triangle_pixel(triangle, p, q)
 
-    def draw_triangle_pixel(self, triangle: Triangle, p, q):
+    def draw_triangle_pixel(self, triangle: Triangle, p: float, q: float) -> None:
         point = triangle.get_vertice(p, q)
         if self.depth_manager.override(point):
             color = self.depth_manager.get_color(point)
             self.draw_pixel(point.x, point.y, color)
 
-    def draw_triangle_outline(self, triangle: Triangle):
+    def draw_triangle_outline(self, triangle: Triangle) -> None:
         color_white = (255, 255, 255)
         self.draw_line(triangle.a, triangle.b, color_white)
         self.draw_line(triangle.b, triangle.c, color_white)
         self.draw_line(triangle.c, triangle.a, color_white)
 
-    def draw_line(self, start: Vertice, end: Vertice, color):
+    def draw_line(self, start: Vertice, end: Vertice, color: tuple) -> None:
         if end.x != start.x:
             step = 1 if start.x < end.x else -1
             k = (end.y - start.y)/(end.x - start.x)
@@ -89,7 +89,7 @@ class Rasterizer:
 
         self.draw_pixel((end.x, end.y), color)
 
-    def draw_pixel(self, x: int, y: int, color):
+    def draw_pixel(self, x: int, y: int, color: tuple) -> None:
         if x >= self.width or x < 0 or y >= self.height or y < 0:
             return
 

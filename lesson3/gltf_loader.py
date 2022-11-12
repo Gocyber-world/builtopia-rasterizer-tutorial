@@ -2,7 +2,7 @@ import struct
 from pygltflib import GLTF2
 
 class GltfLoader:
-    def load(self, path):
+    def load(self, path: str) -> list:
         gltf = GLTF2().load(path)
         mesh = gltf.meshes[gltf.scenes[gltf.scene].nodes[0]]
         primitives = []
