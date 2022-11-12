@@ -39,7 +39,7 @@ class Rasterizer:
 
             depth = camera_pos[2]
             pixel_positions.append(Vertice(px, py, depth))
-            self.depth_manager.add_depth(camera_pos[2])
+            self.depth_manager.add_depth(depth)
 
         return pixel_positions
 
@@ -49,17 +49,16 @@ class Rasterizer:
             b = positions[indices[i + 1]]
             c = positions[indices[i + 2]]
             # self.draw_triangle_outline(Triangle(a, b, c))
-            avg_depth = (a.depth + b.depth + c.depth)/3
-            color_value = self.depth_manager.get_color(avg_depth)
-            color = (color_value, color_value, color_value)
-            self.draw_triangle(Triangle(a, b, c), color, avg_depth)
+            self.draw_triangle(Triangle(a, b, c))
 
-    def draw_triangle(self, triangle: Triangle, color, depth):
+    def draw_triangle(self, triangle: Triangle):
+        avg_depth = (triangle.a.depth + triangle.b.depth + triangle.c.depth)/3
+        color_value = self.depth_manager.get_color(avg_depth)
+        color = (color_value, color_value, color_value)
         for x in range(triangle.minx, triangle.maxx):
             for y in range(triangle.miny, triangle.maxy):
-                if triangle.contains(Vertice(x, y)):
-                    if self.depth_manager.override(x, y, depth):
-                        self.draw_pixel((x,y), color)
+                if triangle.contains(Vertice(x, y)) and self.depth_manager.override(x, y, avg_depth):
+                    self.draw_pixel((x, y), color)
 
     def draw_triangle_outline(self, triangle: Triangle):
         color_white = (255, 255, 255)

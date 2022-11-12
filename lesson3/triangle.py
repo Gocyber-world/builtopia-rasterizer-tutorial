@@ -11,7 +11,6 @@ class Triangle:
         self.a = a
         self.b = b
         self.c = c
-        self.z = np.array([0, 0, 1])
         self.calc_bbox(a, b, c)
         self.calc_loop_vec(a, b, c)
 
