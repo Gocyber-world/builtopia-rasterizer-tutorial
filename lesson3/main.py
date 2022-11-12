@@ -1,4 +1,3 @@
-import cProfile
 from camera import Camera
 from rasterizer import Rasterizer
 
@@ -16,4 +15,4 @@ camera.set(
 )
 
 rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "monkey.gltf")
-cProfile.run("rasterizer.draw_primitives().show()")
+rasterizer.draw_primitives().show()

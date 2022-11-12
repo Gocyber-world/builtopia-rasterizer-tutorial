@@ -52,14 +52,14 @@ class Rasterizer:
             self.draw_triangle(Triangle(a, b, c))
 
     def draw_triangle(self, triangle: Triangle):
-        for x in range(triangle.minx, triangle.maxx):
-            for y in range(triangle.miny, triangle.maxy):
-                point = Vertice(x, y)
-                if triangle.contains(point):
-                    point.depth = self.depth_manager.get_depth(triangle, x, y)
-                    if self.depth_manager.override(point):
-                        color = self.depth_manager.get_color(point)
-                        self.draw_pixel(x, y, color)
+        # use barycentric coordinates
+        step = 1.0/triangle.max_edge
+        for p in np.arange(0, 1, step):
+            for q in np.arange(0, 1 - p, step):
+                point = triangle.get_vertice(p, q)
+                if self.depth_manager.override(point):
+                    color = self.depth_manager.get_color(point)
+                    self.draw_pixel(point.x, point.y, color)
 
     def draw_triangle_outline(self, triangle: Triangle):
         color_white = (255, 255, 255)
