@@ -55,11 +55,16 @@ class Rasterizer:
         # use barycentric coordinates
         step = 1.0/triangle.max_edge
         for p in np.arange(0, 1, step):
+            # handle boundary
+            self.draw_triangle_pixel(triangle, p, 1 - p)
             for q in np.arange(0, 1 - p, step):
-                point = triangle.get_vertice(p, q)
-                if self.depth_manager.override(point):
-                    color = self.depth_manager.get_color(point)
-                    self.draw_pixel(point.x, point.y, color)
+                self.draw_triangle_pixel(triangle, p, q)
+
+    def draw_triangle_pixel(self, triangle: Triangle, p, q):
+        point = triangle.get_vertice(p, q)
+        if self.depth_manager.override(point):
+            color = self.depth_manager.get_color(point)
+            self.draw_pixel(point.x, point.y, color)
 
     def draw_triangle_outline(self, triangle: Triangle):
         color_white = (255, 255, 255)
