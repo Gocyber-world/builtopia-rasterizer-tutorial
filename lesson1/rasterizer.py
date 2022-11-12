@@ -8,7 +8,13 @@ I_HEIGHT = 600
 I_SCALE = 200
 RGBS = np.zeros(I_WIDTH * I_HEIGHT * 3, np.uint8).reshape(I_HEIGHT, I_WIDTH, 3)
 WHITE = (255,255,255)
-CAMERA_MATRIX = np.array([
+CAMERA_TRANSFORM_MATRIX = np.array([
+    [1,0,0,0],
+    [0,1,0,0],
+    [0,0,1,0],
+    [0,0,0,1]
+])
+CAMERA_CLIP_MATRIX = np.array([
     [1,0,0,0],
     [0,1,0,0],
     [0,0,1,0],
@@ -101,9 +107,12 @@ def loadGltf(path):
     return primitives
 
 def rasterizeLine(startf, endf):
-    start = np.matmul(startf, CAMERA_MATRIX)
-    end = np.matmul(endf, CAMERA_MATRIX)
-    drawLine(positionToPixelPos(start), positionToPixelPos(end))
+    x = np.array([startf[0], startf[1], startf[2], 1])
+    y = np.array([endf[0], endf[1], endf[2], 1])
+    transformClipMat = np.matmul(CAMERA_CLIP_MATRIX, CAMERA_TRANSFORM_MATRIX)
+    startCam = np.matmul(transformClipMat, x)
+    endCam = np.matmul(transformClipMat, y)
+    drawLine(positionToPixelPos(startCam), positionToPixelPos(endCam))
 
 def drawPixel(position, color):
     x = position[0]
@@ -116,11 +125,11 @@ def drawPixel(position, color):
     RGBS[y][x][2] = color[2]
 
 def positionToPixelPos(position):
-    x = position[0]
-    y = position[1]
-    x1 = (int)(x * I_SCALE + I_WIDTH/2)
-    y1 = (int)(-1 * y * I_SCALE + I_HEIGHT/2)
-    return (x1, y1)
+    x = position[0] / position[3]
+    y = position[1] / position[3]
+    u = (int)((x * I_SCALE + I_WIDTH/2) )
+    v = (int)((-1 * y * I_SCALE + I_HEIGHT/2))
+    return (u, v)
 
 def drawLine(start, end):
     
@@ -152,20 +161,46 @@ def norm(v):
        return v
     return v / norm
 
-def genCamMatrixByCamPos(position):
-    z = norm(position)
-    x = norm(np.cross((0,1,0), z))
-    y = norm(np.cross(z, x))
-    return np.array([x,y,z]).transpose()
-    
+
+def genCamTransformMatrix(position, lookat, up):
+    # 1. position & lookat => transformVector
+    # 2. up + transformVector => forwardCamera, upCamera, rightCamera
+    # 3. calTransformMatrix
+    transformVector = (position[0] - lookat[0], position[1] - lookat[1], position[2] - lookat[2])
+    forwardCamera = norm(transformVector)
+    tmpUp = up
+    if (abs(np.dot(forwardCamera, norm(up))) == 1):
+        tmpUp = (up[1], up[0], up[2])
+
+    rightCamera = norm(np.cross(tmpUp, forwardCamera))
+    upCamera = norm(np.cross(forwardCamera, rightCamera))
+
+    return np.array([
+        [rightCamera[0], rightCamera[1], rightCamera[2], 0],
+        [upCamera[0], upCamera[1], upCamera[2], 0],
+        [forwardCamera[0], forwardCamera[1], forwardCamera[2], 0],
+        [transformVector[0], transformVector[1], transformVector[2], 1]
+    ]).transpose()
+
+
+def genCamClipMatrix(fov, nearClip, farClip):
+    aspect = I_WIDTH / I_HEIGHT
+    fov = np.radians(fov)
+    E = np.cos(fov / 2)
+    A = (nearClip + farClip)/(nearClip - farClip)
+    B = -(2 *farClip * nearClip) / (nearClip - farClip)
+    return np.array([[E/(aspect *nearClip), 0, 0, 0], [0, E/nearClip, 0, 0], [0 ,0, A, B],[0 ,0, 1, 0]])
 
 data = loadGltf("monkey.gltf")
-CAMERA_MATRIX = genCamMatrixByCamPos((1,5,1))
-print(CAMERA_MATRIX)
+CAMERA_TRANSFORM_MATRIX = genCamTransformMatrix((0, 0, 2), (0,0,0), (0,1,0))
+print(CAMERA_TRANSFORM_MATRIX)
+CAMERA_CLIP_MATRIX = genCamClipMatrix(45, 1, 1000)
+print(CAMERA_CLIP_MATRIX)
+
 for p in data:
     positions = p["vertices"]
     indices = p["indices"]
-    
+
     for i in range(0, len(indices), 3):
         a = positions[indices[i][0]]
         b = positions[indices[i + 1][0]]
