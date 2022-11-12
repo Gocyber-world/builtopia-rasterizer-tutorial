@@ -58,7 +58,7 @@ class Rasterizer:
         for x in range(triangle.minx, triangle.maxx):
             for y in range(triangle.miny, triangle.maxy):
                 if triangle.contains(Vertice(x, y)) and self.depth_manager.override(x, y, avg_depth):
-                    self.draw_pixel((x, y), color)
+                    self.draw_pixel(x, y, color)
 
     def draw_triangle_outline(self, triangle: Triangle):
         color_white = (255, 255, 255)
@@ -66,7 +66,7 @@ class Rasterizer:
         self.draw_line(triangle.b, triangle.c, color_white)
         self.draw_line(triangle.c, triangle.a, color_white)
 
-    def draw_line(self, start: Vertice, end: Vertice, color: Vertice):
+    def draw_line(self, start: Vertice, end: Vertice, color):
         if end.x != start.x:
             step = 1 if start.x < end.x else -1
             k = (end.y - start.y)/(end.x - start.x)
@@ -83,8 +83,7 @@ class Rasterizer:
 
         self.draw_pixel((end.x, end.y), color)
 
-    def draw_pixel(self, position, color):
-        x, y = position
+    def draw_pixel(self, x: int, y: int, color):
         if x >= self.width or x < 0 or y >= self.height or y < 0:
             return
 
