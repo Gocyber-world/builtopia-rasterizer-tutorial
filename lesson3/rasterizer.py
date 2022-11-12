@@ -1,9 +1,9 @@
-import random
 import numpy as np
 from PIL import Image
-from gltfLoader import GltfLoader
+from gltf_loader import GltfLoader
 from camera import Camera
 from triangle import Vertice, Triangle
+from depth_manager import DepthManager
 
 class Rasterizer:
     def __init__(self, width, height, scale, camera: Camera, file):
@@ -14,11 +14,12 @@ class Rasterizer:
         loader = GltfLoader()
         self.primitives = loader.load(file)
         self.color_map = np.zeros((self.height, self.width, 3), np.uint8)
-        self.depth_map = np.full((self.height, self.width), float("inf"), np.float32)
+        self.depth_manager = DepthManager(width, height)
 
     def draw_primitives(self):
         for primitive in self.primitives:
             positions = self.generate_pixel_positions(primitive["vertices"])
+            self.depth_manager.calc_depth_ratio()
             indices = primitive["indices"]
             self.draw_triangles(positions, indices)
 
@@ -38,6 +39,7 @@ class Rasterizer:
 
             depth = camera_pos[2]
             pixel_positions.append(Vertice(px, py, depth))
+            self.depth_manager.add_depth(camera_pos[2])
 
         return pixel_positions
 
@@ -48,18 +50,16 @@ class Rasterizer:
             c = positions[indices[i + 2]]
             # self.draw_triangle_outline(Triangle(a, b, c))
             avg_depth = (a.depth + b.depth + c.depth)/3
-            color_value = int(255 + avg_depth * 30)
-            color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+            color_value = self.depth_manager.get_color(avg_depth)
+            color = (color_value, color_value, color_value)
             self.draw_triangle(Triangle(a, b, c), color, avg_depth)
 
     def draw_triangle(self, triangle: Triangle, color, depth):
         for x in range(triangle.minx, triangle.maxx):
             for y in range(triangle.miny, triangle.maxy):
                 if triangle.contains(Vertice(x, y)):
-                    old_depth = self.depth_map[y][x]
-                    if -depth < old_depth:
+                    if self.depth_manager.override(x, y, depth):
                         self.draw_pixel((x,y), color)
-                        self.depth_map[y][x] = -depth
 
     def draw_triangle_outline(self, triangle: Triangle):
         color_white = (255, 255, 255)
