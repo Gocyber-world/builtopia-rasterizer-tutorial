@@ -6,6 +6,17 @@ class Vertice:
         self.y = y
         self.depth = depth
 
+    def __add__(self, other):
+        if isinstance(other, Vertice):
+            return Vertice(self.x + other.x, self.y + other.y, self.depth + other.depth)
+
+    def __mul__(self, other):
+        if isinstance(other, float):
+            return Vertice(self.x*other, self.y*other, self.depth*other)
+
+    def round(self):
+        self.x, self.y = int(self.x), int(self.y)
+
 class Triangle:
     def __init__(self, a: Vertice, b: Vertice, c: Vertice) -> None:
         self.a = a
@@ -21,7 +32,6 @@ class Triangle:
         return math.sqrt(vec[0]*vec[0] + vec[1]*vec[1])
 
     def get_vertice(self, p: float, q: float) -> Vertice:
-        x = int(p*self.a.x + q*self.b.x + (1 - p - q)*self.c.x)
-        y = int(p*self.a.y + q*self.b.y + (1 - p - q)*self.c.y)
-        depth = p*self.a.depth + q*self.b.depth + (1 - p - q)*self.c.depth
-        return Vertice(x, y, depth)
+        vertice = self.a*p + self.b*q + self.c*(1 - p - q)
+        vertice.round()
+        return vertice
