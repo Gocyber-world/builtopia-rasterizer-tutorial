@@ -31,6 +31,7 @@ class Rasterizer:
     def generate_pixel_positions(self, positions):
         pixel_positions = []
         projection_matrix = self.camera.get_perspective().transpose()
+        # min_depth, max_depth = -1000, 0 
         for pos in positions:
             pos.append(1)   # [x, y, z] -> [x, y, z, 1]
             camera_pos = np.matmul(pos, projection_matrix)
@@ -41,7 +42,10 @@ class Rasterizer:
 
             px = (int)(x * self.scale + self.width/2)
             py = (int)(-1 * y * self.scale + self.height/2)
+            # min_depth = max(min_depth, depth)
+            # max_depth = min(max_depth, depth)
             pixel_positions.append((px, py, depth))
+        # print(min_depth, max_depth)
 
         return pixel_positions
 
@@ -54,9 +58,9 @@ class Rasterizer:
             #self.draw_line(b, c)
             #self.draw_line(c, a)
             avg_depth = (a[2] + b[2] + c[2])/3
-            color_value = int(255 + avg_depth * 30)
-            color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-            self.draw_triangle(a, b, c, color, avg_depth)
+            # color_value = int(255 + avg_depth * 30)
+            # color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+            self.draw_triangle(a, b, c, avg_depth)
 
     def find_min(self, a, b, c):
         x = min(a[0], b[0], c[0])
@@ -71,13 +75,14 @@ class Rasterizer:
     def sign(self, t, a, b):
         # TODO: Optimize!!
         # axis z
-        z = np.array([0,0,1])
+        # z = np.array([0,0,1])
         # vector ab
-        v1 = np.array([b[0] - a[0], b[1] - a[1], 0])
+        # v1 = np.array([b[0] - a[0], b[1] - a[1], 0])
         # vector at
-        v2 = np.array([t[0] - a[0], t[1] - a[1], 0])
+        # v2 = np.array([t[0] - a[0], t[1] - a[1], 0])
 
-        return np.dot(z, np.cross(v1, v2)) > 0
+        # return np.dot(z, np.cross(v1, v2)) > 0
+        return (b[0] - a[0]) * (t[1] - a[1]) - (b[1] - a[1]) * (t[0] - a[0]) > 0
 
     def is_inside_triangle(self, t, a, b, c):
         sign1 = self.sign(t, a, b)
@@ -86,17 +91,27 @@ class Rasterizer:
 
         return (sign3 == sign2) and (sign2 == sign1)
         
+    # 计算平面方程
+    def get_panel(self, a, b, c):
+        A = (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1])
+        B = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2])
+        C = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+        D = - A * a[0] - B * a[1] - C * a[2]
+        return A, B, C, D
     
-    def draw_triangle(self, a, b, c, color, depth):
+    def draw_triangle(self, a, b, c, depth):
         # TODO: Optimize!!
         min = self.find_min(a, b, c)
         max = self.find_max(a, b, c)
+        A, B, C, D = self.get_panel(a, b, c)
         for x in range(min[0], max[0]):
             for y in range(min[1], max[1]):
                 if self.is_inside_triangle((x, y), a, b, c):
                     old_depth = self.depth_map[y][x]
                     if -depth < old_depth:
-                        self.draw_pixel((x,y), color)
+                        current_depth = depth if C == 0 else - (D + A * x + B * y) / C
+                        color = (-current_depth - 3) / 4 * 255
+                        self.draw_pixel((x,y), (color, color, color))
                         self.depth_map[y][x] = -depth
 
     def draw_line(self, start, end):
