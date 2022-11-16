@@ -13,6 +13,9 @@ class Rasterizer:
         self.scale = scale
         self.camera = camera
         loader = GltfLoader()
+        self.max_depth = float('-inf')
+        self.min_depth = float('-inf')
+        self.depth_points = list()
         self.primitives = loader.load(file)
         self.rgbs = np.zeros(self.width * self.height * 3, np.uint8).reshape(self.height, self.width, 3)
         self.depth_map = np.zeros(self.width * self.height, np.float32).reshape(self.height, self.width)
@@ -25,7 +28,9 @@ class Rasterizer:
             positions = self.generate_pixel_positions(primitive["vertices"])
             indices = primitive["indices"]
             self.draw_triangles(positions, indices)
-
+        for pos in self.depth_points:
+            color = int(255 + (pos[2] - self.max_depth) * 255/abs(self.max_depth - self.min_depth))
+            self.draw_pixel((pos[0], pos[1]), color)
         return Image.fromarray(self.rgbs, 'RGB')
 
     def generate_pixel_positions(self, positions):
@@ -86,18 +91,30 @@ class Rasterizer:
 
         return (sign3 == sign2) and (sign2 == sign1)
         
-    
+    def barycentric(self, t, a, b, c):
+        v1 = np.array([c[0] - a[0], b[0] - a[0], a[0] - t[0]])
+        v2 = np.array([c[1] - a[1], b[1] - a[1], a[1] - t[1]])
+        u = np.cross(v1, v2)
+        if (u[2] < 1):
+            return (-1, 1, 1)
+        return (1 - (u[0] + u[1])/u[2], u[1]/u[2], u[0]/u[2])
+
+
     def draw_triangle(self, a, b, c, color, depth):
         # TODO: Optimize!!
-        min = self.find_min(a, b, c)
-        max = self.find_max(a, b, c)
-        for x in range(min[0], max[0]):
-            for y in range(min[1], max[1]):
-                if self.is_inside_triangle((x, y), a, b, c):
-                    old_depth = self.depth_map[y][x]
-                    if -depth < old_depth:
-                        self.draw_pixel((x,y), color)
-                        self.depth_map[y][x] = -depth
+        minbox = self.find_min(a, b, c)
+        maxbox = self.find_max(a, b, c)
+        for x in range(minbox[0], maxbox[0]):
+            for y in range(minbox[1], maxbox[1]):
+                pos = self.barycentric((x, y), a, b, c)
+                if (pos[0] < 0 or pos[1] < 0 or pos[2] < 0):
+                    continue
+                old_depth = self.depth_map[y][x]
+                if -depth < old_depth:
+                    self.max_depth = max(self.max_depth, -depth)
+                    self.min_depth = min(self.min_depth, -depth)
+                    self.depth_points.append((x, y, -depth))
+                    self.depth_map[y][x] = -depth
 
     def draw_line(self, start, end):
         startx, starty = start
