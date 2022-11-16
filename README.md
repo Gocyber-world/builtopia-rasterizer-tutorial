@@ -12,7 +12,7 @@ A python based glTF model viewer with GUI and a rich feature set, using rasteriz
 ## Run the code:
   - make sure to install python3 on your device
   - pip3 install numpy
-  - pip3 install imageio
+  - pip3 install pillow
   - pip3 install pygltflib
   - (for lesson2 and later)
   - python3 main.py
