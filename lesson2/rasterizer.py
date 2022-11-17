@@ -53,10 +53,7 @@ class Rasterizer:
             #self.draw_line(a, b)
             #self.draw_line(b, c)
             #self.draw_line(c, a)
-            avg_depth = (a[2] + b[2] + c[2])/3
-            color_value = int(255 + avg_depth * 30)
-            color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
-            self.draw_triangle(a, b, c, color, avg_depth)
+            self.draw_triangle(a, b, c)
 
     def find_min(self, a, b, c):
         x = min(a[0], b[0], c[0])
@@ -68,26 +65,13 @@ class Rasterizer:
         y = max(a[1], b[1], c[1])
         return (x,y)
 
-    def sign(self, t, a, b):
-        # TODO: Optimize!!
-        # axis z
-        z = np.array([0,0,1])
-        # vector ab
-        v1 = np.array([b[0] - a[0], b[1] - a[1], 0])
-        # vector at
-        v2 = np.array([t[0] - a[0], t[1] - a[1], 0])
-
-        return np.dot(z, np.cross(v1, v2)) > 0
 
     def is_inside_triangle(self, t, a, b, c):
-        sign1 = self.sign(t, a, b)
-        sign2 = self.sign(t, b, c)
-        sign3 = self.sign(t, c, a)
-
-        return (sign3 == sign2) and (sign2 == sign1)
+        massCenter = self.calc_mass_center(a,b,c,t)
+        return (massCenter[0] >= 0) and (massCenter[1] >= 0) and (massCenter[2] >= 0)
         
     
-    def draw_triangle(self, a, b, c, color, depth):
+    def draw_triangle(self, a, b, c):
         # TODO: Optimize!!
         min = self.find_min(a, b, c)
         max = self.find_max(a, b, c)
@@ -95,6 +79,10 @@ class Rasterizer:
             for y in range(min[1], max[1]):
                 if self.is_inside_triangle((x, y), a, b, c):
                     old_depth = self.depth_map[y][x]
+                    w = self.calc_mass_center(a,b,c,(x, y))
+                    depth = w[0] * a[2] + w[1] * b[2] + w[2] * c[2]
+                    colorValue = 255 + depth * 50
+                    color = [colorValue,colorValue,colorValue]
                     if -depth < old_depth:
                         self.draw_pixel((x,y), color)
                         self.depth_map[y][x] = -depth
@@ -125,3 +113,16 @@ class Rasterizer:
             return
 
         self.rgbs[y][x] = color
+
+    # 质心方程
+    def calc_mass_center(self,p1,p2,p3,p):
+      if(((p2[1] - p3[1]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[1] - p3[1]) )):
+        w1 = ( (p2[1] - p3[1]) * (p[0] - p3[0]) + (p3[0] - p2[0]) * (p[1] - p3[1]))/ ((p2[1] - p3[1]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[1] - p3[1]) )
+        w2 = ( (p3[1] - p1[1]) * (p[0] - p3[0]) + (p1[0] - p3[0]) * (p[1] - p3[1]))/ ((p2[1] - p3[1]) * (p1[0] - p3[0]) + (p3[0] - p2[0]) * (p1[1] - p3[1]) )
+        w3 = 1 - w1 - w2
+      else:
+        # TODO: 三角形一条边垂直平面的权重
+        return [1/3,1/3,1/3]
+      return [w1,w2,w3]
+    
+    
