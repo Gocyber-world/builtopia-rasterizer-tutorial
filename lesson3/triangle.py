@@ -35,3 +35,32 @@ class Triangle:
         vertice = self.a*p + self.b*q + self.c*(1 - p - q)
         vertice.round()
         return vertice
+
+class Mesh:
+    def __init__(self) -> None:
+        self.name = ''
+        self.primitives = []
+        self.translation = [0, 0, 0]
+        self.scale = [1, 1, 1]
+
+    def set_translation(self, translation) -> None:
+        if translation != None:
+            self.translation = translation
+
+    def set_scale(self, scale) -> None:
+        if scale != None:
+            self.scale = scale
+
+class Primitive:
+    def __init__(self) -> None:
+        self.vertices = []
+        self.normals = []
+        self.uvs = []
+        self.indices = []
+        self.material = PBRMaterial()
+
+class PBRMaterial:
+    def __init__(self) -> None:
+        self.color = [255, 255, 255]
+        self.texture = None
+    
