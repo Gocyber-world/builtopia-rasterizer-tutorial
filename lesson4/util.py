@@ -25,7 +25,7 @@ class PBRMaterial:
         self.texture = texture.load()
 
 class Vertice:
-    def __init__(self, x, y, depth=0.0) -> None:
+    def __init__(self, x, y, depth) -> None:
         self.x, self.y, self.depth = x, y, depth
         self.u = self.v = None
 
@@ -69,9 +69,24 @@ class Triangle:
         return math.sqrt(vec[0]*vec[0] + vec[1]*vec[1])
 
     def get_vertice(self, p: float, q: float) -> Vertice:
-        vertice = self.a*p + self.b*q + self.c*(1 - p - q)
+        vertice = self.get_pos_interp(p, q)
+        if self.material.texture is not None:
+            self.get_uv_interp(p, q, vertice)
         vertice.round()
         return vertice, self.get_color(vertice)
+
+    def get_pos_interp(self, p: float, q: float) -> Vertice:
+        x = self.interpolation(p, q, self.a.x, self.b.x, self.c.x)
+        y = self.interpolation(p, q, self.a.y, self.b.y, self.c.y)
+        depth = self.interpolation(p, q, self.a.depth, self.b.depth, self.c.depth)
+        return Vertice(x, y, depth)
+
+    def get_uv_interp(self, p: float, q: float, vertice: Vertice) -> None:
+        vertice.u = self.interpolation(p, q, self.a.u, self.b.u, self.c.u)
+        vertice.v = self.interpolation(p, q, self.a.v, self.b.v, self.c.v)
+
+    def interpolation(self, p: float, q: float, i: float, j: float, k: float) -> float:
+        return i*p + j*q + k*(1 - p - q)
 
     def get_color(self, vertice: Vertice) -> list:
         texture = self.material.texture
