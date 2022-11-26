@@ -27,6 +27,7 @@ class PBRMaterial:
 class Vertice:
     def __init__(self, x, y, depth=0.0):
         self.x, self.y, self.depth = x, y, depth
+        self.u = self.v = None
 
     def __add__(self, other):
         if isinstance(other, Vertice):
@@ -35,6 +36,10 @@ class Vertice:
     def __mul__(self, other):
         if isinstance(other, float):
             return Vertice(self.x*other, self.y*other, self.depth*other)
+
+    def set_uv(self, uv: list, material: PBRMaterial) -> None:
+        self.u = int(uv[0] * (material.texture_width - 1))
+        self.v = int(uv[1] * (material.texture_height - 1))
 
     def round(self):
         self.x, self.y = int(self.x), int(self.y)

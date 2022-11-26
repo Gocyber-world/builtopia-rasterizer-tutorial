@@ -30,11 +30,7 @@ class Rasterizer:
         indices = primitive.indices
         uvs = primitive.uvs
 
-        self.draw_triangles(positions, indices, primitive.material)
-        # if primitive.material.texture != None:
-        #     self.draw_triangles_with_texture(positions, indices, uvs, primitive.material.texture)
-        # else:
-        #     self.draw_triangles(positions, indices, primitive.material.color)
+        self.draw_triangles(positions, indices, uvs, primitive.material)
 
     def generate_pixel_positions(self, positions: list) -> list:
         pixel_positions = list()
@@ -53,11 +49,16 @@ class Rasterizer:
 
         return pixel_positions
 
-    def draw_triangles(self, positions: list, indices: list, material: PBRMaterial) -> None:
+    def draw_triangles(self, positions: list, indices: list, uvs: list, material: PBRMaterial) -> None:
         for i in range(0, len(indices), 3):
             a = positions[indices[i]]
             b = positions[indices[i + 1]]
             c = positions[indices[i + 2]]
+            if material.texture is not None:
+                a.set_uv(uvs[indices[i]], material)
+                b.set_uv(uvs[indices[i + 1]], material)
+                c.set_uv(uvs[indices[i + 2]], material)
+
             self.draw_triangle(Triangle(a, b, c, material))
 
     def draw_triangle(self, triangle: Triangle) -> None:
@@ -73,36 +74,6 @@ class Rasterizer:
         point, color = triangle.get_vertice(p, q)
         if self.depth_manager.override(point):
             self.draw_pixel(point.x, point.y, color)
-
-    def draw_triangles_with_texture(self, positions: list, indices: list, uvs: list, texture: Image) -> None:
-        width, height = texture.size
-        for i in range(0, len(indices), 3):
-            a = positions[indices[i]]
-            b = positions[indices[i + 1]]
-            c = positions[indices[i + 2]]
-
-            auv = uvs[indices[i]]
-            buv = uvs[indices[i + 1]]
-            cuv = uvs[indices[i + 2]]
-            x = self.to_uv_vertice(auv, width, height)
-            y = self.to_uv_vertice(buv, width, height)
-            z = self.to_uv_vertice(cuv, width, height)
-
-            self.draw_triangle_with_texture(Triangle(a, b, c), Triangle(x, y, z), texture)
-
-    def to_uv_vertice(self, uv, width, height) -> Vertice:
-        x = int(uv[0] * (width - 1))
-        y = int(uv[1] * (height - 1))
-        return Vertice(x, y)
-
-    def draw_triangle_with_texture(self, triangle: Triangle, uvTriangle: Triangle, texture: Image) -> None:
-        # use barycentric coordinates
-        step = 1.0/triangle.max_edge
-        for p in np.arange(0, 1, step):
-            # handle boundary
-            self.draw_triangle_pixel_with_texture(triangle, uvTriangle, p, 1 - p, texture)
-            for q in np.arange(0, 1 - p, step):
-                self.draw_triangle_pixel_with_texture(triangle, uvTriangle, p, q, texture)
 
     def draw_triangle_pixel_with_texture(self, triangle: Triangle, uvTriagnle: Triangle, p: float, q: float, texture: Image) -> None:
         point = triangle.get_vertice(p, q)
