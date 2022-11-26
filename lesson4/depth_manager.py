@@ -11,7 +11,7 @@ class DepthManager:
             return False
 
         old_depth = self.depth_map[point.y][point.x]
-        if point.depth < old_depth:
+        if point.depth <= old_depth:
             return False
 
         self.depth_map[point.y][point.x] = point.depth

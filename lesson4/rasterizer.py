@@ -25,11 +25,9 @@ class Rasterizer:
 
     def draw_primitive(self, primitive, translation: list, scale: list) -> list:
         vertices = [[v[i] * scale[i] + translation[i] for i in range(3)] for v in primitive.vertices]
-
         positions = self.generate_pixel_positions(vertices)
         indices = primitive.indices
         uvs = primitive.uvs
-
         self.draw_triangles(positions, indices, uvs, primitive.material)
 
     def generate_pixel_positions(self, positions: list) -> list:
@@ -64,13 +62,6 @@ class Rasterizer:
         point, color = triangle.get_vertice(p, q)
         if self.depth_manager.override(point):
             self.draw_pixel(point.x, point.y, color)
-
-    def draw_triangle_pixel_with_texture(self, triangle: Triangle, uvTriagnle: Triangle, p: float, q: float, texture: Image) -> None:
-        point = triangle.get_vertice(p, q)
-        if self.depth_manager.override(point):
-            uvpoint = uvTriagnle.get_vertice(p, q)
-            px = texture.load()
-            self.draw_pixel(point.x, point.y, px[uvpoint.x, uvpoint.y])
 
     def draw_pixel(self, x: int, y: int, color: tuple) -> None:
         if x >= self.width or x < 0 or y >= self.height or y < 0:

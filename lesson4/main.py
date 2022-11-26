@@ -1,5 +1,6 @@
 from camera import Camera
 from rasterizer import Rasterizer
+import cProfile
 
 I_WIDTH = 800
 I_HEIGHT = 600
@@ -15,4 +16,5 @@ camera.set(
 )
 
 rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "data/shapes.gltf")
-rasterizer.draw_meshes().show()
+# rasterizer.draw_meshes().show()
+cProfile.run("rasterizer.draw_meshes()")
