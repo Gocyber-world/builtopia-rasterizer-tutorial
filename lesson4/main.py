@@ -16,5 +16,4 @@ camera.set(
 )
 
 rasterizer = Rasterizer(I_WIDTH, I_HEIGHT, I_SCALE, camera, "data/shapes.gltf")
-# rasterizer.draw_meshes().show()
-cProfile.run("rasterizer.draw_meshes()")
+rasterizer.draw_meshes().show()

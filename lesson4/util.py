@@ -25,21 +25,9 @@ class PBRMaterial:
         self.texture = texture.load()
 
 class Vertice:
-    def __init__(self, x, y, depth) -> None:
+    def __init__(self, x: float, y: float, depth: float) -> None:
         self.x, self.y, self.depth = x, y, depth
         self.u = self.v = None
-
-    def __add__(self, other):
-        vertice = Vertice(self.x + other.x, self.y + other.y, self.depth + other.depth)
-        if self.u is not None and other.u is not None:
-            vertice.u, vertice.v = self.u + other.u, self.v + other.v
-        return vertice
-
-    def __mul__(self, other):
-        vertice = Vertice(self.x*other, self.y*other, self.depth*other)
-        if self.u is not None:
-            vertice.u, vertice.v = self.u*other, self.v*other
-        return vertice
 
     def set_uv(self, uv: list, material: PBRMaterial) -> None:
         self.u = uv[0] * (material.texture_width - 1)
