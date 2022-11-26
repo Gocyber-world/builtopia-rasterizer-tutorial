@@ -25,30 +25,41 @@ class PBRMaterial:
         self.texture = texture.load()
 
 class Vertice:
-    def __init__(self, x, y, depth=0.0):
+    def __init__(self, x, y, depth=0.0) -> None:
         self.x, self.y, self.depth = x, y, depth
         self.u = self.v = None
 
     def __add__(self, other):
-        if isinstance(other, Vertice):
-            return Vertice(self.x + other.x, self.y + other.y, self.depth + other.depth)
+        vertice = Vertice(self.x + other.x, self.y + other.y, self.depth + other.depth)
+        if self.u is not None and other.u is not None:
+            vertice.u, vertice.v = self.u + other.u, self.v + other.v
+        return vertice
 
     def __mul__(self, other):
-        if isinstance(other, float):
-            return Vertice(self.x*other, self.y*other, self.depth*other)
+        vertice = Vertice(self.x*other, self.y*other, self.depth*other)
+        if self.u is not None:
+            vertice.u, vertice.v = self.u*other, self.v*other
+        return vertice
 
     def set_uv(self, uv: list, material: PBRMaterial) -> None:
-        self.u = int(uv[0] * (material.texture_width - 1))
-        self.v = int(uv[1] * (material.texture_height - 1))
+        self.u = uv[0] * (material.texture_width - 1)
+        self.v = uv[1] * (material.texture_height - 1)
 
-    def round(self):
+    def round(self) -> None:
         self.x, self.y = int(self.x), int(self.y)
+        if self.u is not None:
+            self.u, self.v = int(self.u), int(self.v)
 
 class Triangle:
-    def __init__(self, a: Vertice, b: Vertice, c: Vertice, material: PBRMaterial) -> None:
-        self.a, self.b, self.c = a, b, c
-        self.calc_max_edge(a, b, c)
+    def __init__(self, positions: list, indice: list, uvs: list, material: PBRMaterial) -> None:
+        i, j, k = indice
+        self.a, self.b, self.c = positions[i], positions[j], positions[k]
+        self.calc_max_edge(self.a, self.b, self.c)
         self.material = material
+        if material.texture is not None:
+            self.a.set_uv(uvs[i], material)
+            self.b.set_uv(uvs[j], material)
+            self.c.set_uv(uvs[k], material)
 
     def calc_max_edge(self, a: Vertice, b: Vertice, c: Vertice) -> None:
         self.max_edge = max(self.length(a, b), self.length(b, c), self.length(c, a))
@@ -63,4 +74,7 @@ class Triangle:
         return vertice, self.get_color(vertice)
 
     def get_color(self, vertice: Vertice) -> list:
+        texture = self.material.texture
+        if texture is not None:
+            return texture[vertice.u, vertice.v]
         return self.material.color

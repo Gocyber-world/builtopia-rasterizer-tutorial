@@ -50,25 +50,15 @@ class Rasterizer:
         return pixel_positions
 
     def draw_triangles(self, positions: list, indices: list, uvs: list, material: PBRMaterial) -> None:
-        for i in range(0, len(indices), 3):
-            a = positions[indices[i]]
-            b = positions[indices[i + 1]]
-            c = positions[indices[i + 2]]
-            if material.texture is not None:
-                a.set_uv(uvs[indices[i]], material)
-                b.set_uv(uvs[indices[i + 1]], material)
-                c.set_uv(uvs[indices[i + 2]], material)
-
-            self.draw_triangle(Triangle(a, b, c, material))
-
-    def draw_triangle(self, triangle: Triangle) -> None:
-        # use barycentric coordinates
-        step = 1.0/triangle.max_edge
-        for p in np.arange(0, 1, step):
-            # handle boundary
-            self.draw_triangle_pixel(triangle, p, 1 - p)
-            for q in np.arange(0, 1 - p, step):
-                self.draw_triangle_pixel(triangle, p, q)
+        for indice in [indices[i:i+3] for i in range(0, len(indices), 3)]:
+            # use barycentric coordinates
+            triangle = Triangle(positions, indice, uvs, material)
+            step = 1.0/triangle.max_edge
+            for p in np.arange(0, 1, step):
+                # handle boundary
+                self.draw_triangle_pixel(triangle, p, 1 - p)
+                for q in np.arange(0, 1 - p, step):
+                    self.draw_triangle_pixel(triangle, p, q)
 
     def draw_triangle_pixel(self, triangle: Triangle, p: float, q: float) -> None:
         point, color = triangle.get_vertice(p, q)
