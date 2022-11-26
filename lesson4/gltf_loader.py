@@ -6,12 +6,12 @@ from triangle import Mesh, PBRMaterial, Primitive
 class GltfLoader:
     def load(self, path: str) -> list:
         gltf = GLTF2().load(path)
-        textures = self.loadImages(gltf)
-        materials = self.loadMaterials(gltf, textures)
-        meshes = self.loadMeshes(gltf, materials)
+        textures = self.load_images(gltf)
+        materials = self.load_materials(gltf, textures)
+        meshes = self.load_meshes(gltf, materials)
         return meshes
 
-    def loadImages(self, gltf) -> list:
+    def load_images(self, gltf) -> list:
         # read all the images
         textures = []
         for image in gltf.images:
@@ -19,21 +19,21 @@ class GltfLoader:
 
         return textures
 
-    def loadMaterials(self, gltf, textures: list) -> list:
+    def load_materials(self, gltf, textures: list) -> list:
         # read all the materials
         materials = []
         for mat in gltf.materials:
             m = PBRMaterial()
             if mat.pbrMetallicRoughness.baseColorTexture == None:
                 factor = mat.pbrMetallicRoughness.baseColorFactor
-                m.color = [int(255 * f) for f in factor]
+                m.color = [int(255 * f) for f in factor[:3]]
             else:
                 m.texture =  textures[mat.pbrMetallicRoughness.baseColorTexture.index]
             materials.append(m)
 
         return materials
 
-    def loadMeshes(self, gltf, materials: list) -> list:
+    def load_meshes(self, gltf, materials: list) -> list:
         # read all the meshes
         meshes = []
         for node in gltf.nodes:
@@ -41,31 +41,27 @@ class GltfLoader:
                 continue
 
             mesh = gltf.meshes[node.mesh]
-            m = Mesh()
-            m.primitives = self.loadPrimitives(gltf, materials, mesh)
-            m.name = mesh.name
-            m.set_scale(node.scale)
-            m.set_translation(node.translation)
-            meshes.append(m)
+            primitives = self.load_primitives(gltf, materials, mesh)
+            meshes.append(Mesh(mesh.name, primitives, node.translation, node.scale))
 
         return meshes
 
-    def loadPrimitives(self, gltf, materials, mesh) -> list:
+    def load_primitives(self, gltf, materials, mesh) -> list:
         # get the vertices for each primitive in the mesh
         primitives = []
         for primitive in mesh.primitives:
             p = Primitive()
-            p.vertices = self.loadVertices(gltf, primitive)
-            p.normals = self.loadNormals(gltf, primitive)
-            p.uvs = self.loadUVs(gltf, primitive)
-            p.indices = self.loadIndices(gltf, primitive)
+            p.vertices = self.load_vertices(gltf, primitive)
+            p.normals = self.load_normals(gltf, primitive)
+            p.uvs = self.load_uvs(gltf, primitive)
+            p.indices = self.load_indices(gltf, primitive)
             if primitive.material != None:
                 p.material = materials[primitive.material]
             primitives.append(p)
 
         return primitives
 
-    def loadVertices(self, gltf, primitive) -> list:
+    def load_vertices(self, gltf, primitive) -> list:
         # get all vertices
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.attributes.POSITION]
@@ -84,7 +80,7 @@ class GltfLoader:
 
         return vertices
 
-    def loadNormals(self, gltf, primitive) -> list:
+    def load_normals(self, gltf, primitive) -> list:
         # get all normals
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.attributes.NORMAL]
@@ -103,7 +99,7 @@ class GltfLoader:
 
         return normals
 
-    def loadUVs(self, gltf, primitive) -> list:
+    def load_uvs(self, gltf, primitive) -> list:
         # get all uvs
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.attributes.TEXCOORD_0]
@@ -122,7 +118,7 @@ class GltfLoader:
 
         return uvs
 
-    def loadIndices(self, gltf, primitive) -> list:
+    def load_indices(self, gltf, primitive) -> list:
         # get all indices
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.indices]

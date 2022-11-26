@@ -37,19 +37,11 @@ class Triangle:
         return vertice
 
 class Mesh:
-    def __init__(self) -> None:
-        self.name = ''
-        self.primitives = []
-        self.translation = [0, 0, 0]
-        self.scale = [1, 1, 1]
-
-    def set_translation(self, translation) -> None:
-        if translation != None:
-            self.translation = translation
-
-    def set_scale(self, scale) -> None:
-        if scale != None:
-            self.scale = scale
+    def __init__(self, name: str, primitives: list, translation: list, scale: list) -> None:
+        self.name = name
+        self.primitives = primitives
+        self.translation = [0, 0, 0] if translation is None else translation
+        self.scale = [1, 1, 1] if scale is None else scale
 
 class Primitive:
     def __init__(self) -> None:

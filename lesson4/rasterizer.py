@@ -17,31 +17,25 @@ class Rasterizer:
         self.color_map = np.zeros((self.height, self.width, 3), np.uint8)
         self.depth_manager = DepthManager(width, height)
 
-    def draw_primitives(self) -> Image:
+    def draw_meshes(self) -> Image:
         for mesh in self.meshes:
             for primitive in mesh.primitives:
-                translation = mesh.translation
-                scale = mesh.scale
-                vertices = primitive.vertices
-                processed = []
-                for v in vertices:
-                    v1 = [v[0] * scale[0] + translation[0],
-                        v[1] * scale[1] + translation[1],
-                        v[2] * scale[2] + translation[2]]
-                    processed.append(v1)
-
-                positions = self.generate_pixel_positions(processed)
-                self.depth_manager.calc_depth_ratio()
-                indices = primitive.indices
-                uvs = primitive.uvs
-
-                color = primitive.material.color
-                if primitive.material.texture != None:
-                    self.draw_triangles_with_texture(positions, indices, uvs, primitive.material.texture)
-                else:
-                    self.draw_triangles(positions, indices, color)
+                self.draw_primitive(primitive, mesh.translation, mesh.scale)
 
         return Image.fromarray(self.color_map, 'RGB')
+
+    def draw_primitive(self, primitive, translation: list, scale: list) -> list:
+        vertices = [[v[i] * scale[i] + translation[i] for i in range(3)] for v in primitive.vertices]
+
+        positions = self.generate_pixel_positions(vertices)
+        indices = primitive.indices
+        uvs = primitive.uvs
+
+        color = primitive.material.color
+        if primitive.material.texture != None:
+            self.draw_triangles_with_texture(positions, indices, uvs, primitive.material.texture)
+        else:
+            self.draw_triangles(positions, indices, color)
 
     def generate_pixel_positions(self, positions: list) -> list:
         pixel_positions = list()
@@ -57,7 +51,6 @@ class Rasterizer:
 
             depth = camera_pos[2]
             pixel_positions.append(Vertice(px, py, depth))
-            self.depth_manager.add_depth(depth)
 
         return pixel_positions
 
@@ -81,7 +74,6 @@ class Rasterizer:
     def draw_triangle_pixel(self, triangle: Triangle, p: float, q: float, color) -> None:
         point = triangle.get_vertice(p, q)
         if self.depth_manager.override(point):
-            # color = self.depth_manager.get_color(point)
             self.draw_pixel(point.x, point.y, color)
 
     def draw_triangles_with_texture(self, positions: list, indices: list, uvs: list, texture: Image) -> None:
@@ -122,7 +114,6 @@ class Rasterizer:
     def draw_triangle_pixel_with_texture(self, triangle: Triangle, uvTriagnle: Triangle, p: float, q: float, texture: Image) -> None:
         point = triangle.get_vertice(p, q)
         if self.depth_manager.override(point):
-            # color = self.depth_manager.get_color(point)
             uvpoint = uvTriagnle.get_vertice(p, q)
             px = texture.load()
             self.draw_pixel(point.x, point.y, px[uvpoint.x, uvpoint.y])
