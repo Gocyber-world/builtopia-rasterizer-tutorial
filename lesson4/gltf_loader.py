@@ -28,7 +28,7 @@ class GltfLoader:
                 factor = mat.pbrMetallicRoughness.baseColorFactor
                 m.color = [int(255 * f) for f in factor[:3]]
             else:
-                m.texture =  textures[mat.pbrMetallicRoughness.baseColorTexture.index]
+                m.set_texture(textures[mat.pbrMetallicRoughness.baseColorTexture.index])
             materials.append(m)
 
         return materials
