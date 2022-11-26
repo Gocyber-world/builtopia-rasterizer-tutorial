@@ -1,5 +1,5 @@
 import numpy as np
-from triangle import Vertice
+from util import Vertice
 
 class DepthManager:
     def __init__(self, width: int, height: int) -> None:

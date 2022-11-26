@@ -1,10 +1,8 @@
 import math
 
 class Vertice:
-    def __init__(self, x, y, depth=None):
-        self.x = x
-        self.y = y
-        self.depth = depth
+    def __init__(self, x, y, depth=0.0):
+        self.x, self.y, self.depth = x, y, depth
 
     def __add__(self, other):
         if isinstance(other, Vertice):
@@ -19,9 +17,7 @@ class Vertice:
 
 class Triangle:
     def __init__(self, a: Vertice, b: Vertice, c: Vertice) -> None:
-        self.a = a
-        self.b = b
-        self.c = c
+        self.a, self.b, self.c = a, b, c
         self.calc_max_edge(a, b, c)
 
     def calc_max_edge(self, a: Vertice, b: Vertice, c: Vertice) -> None:

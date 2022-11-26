@@ -1,7 +1,7 @@
 import struct
 from pygltflib import GLTF2
 from PIL import Image
-from triangle import Mesh, PBRMaterial, Primitive
+from util import Mesh, PBRMaterial, Primitive
 
 class GltfLoader:
     def load(self, path: str) -> list:

@@ -1,9 +1,8 @@
-from turtle import width
 import numpy as np
 from PIL import Image
 from gltf_loader import GltfLoader
 from camera import Camera
-from triangle import Vertice, Triangle
+from util import Vertice, Triangle
 from depth_manager import DepthManager
 
 class Rasterizer:
