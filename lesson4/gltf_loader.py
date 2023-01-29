@@ -1,25 +1,17 @@
 import struct
-from pygltflib import GLTF2
+import pygltflib as gltflib
 from PIL import Image
 from util import Mesh, PBRMaterial, Primitive
 
 class GltfLoader:
     def load(self, path: str) -> list:
-        gltf = GLTF2().load(path)
-        textures = self.load_images(gltf)
+        gltf = gltflib.GLTF2().load(path)
+        textures = [Image.open('data/' + image.uri) for image in gltf.images]
         materials = self.load_materials(gltf, textures)
         meshes = self.load_meshes(gltf, materials)
         return meshes
 
-    def load_images(self, gltf) -> list:
-        # read all the images
-        textures = []
-        for image in gltf.images:
-            textures.append(Image.open('data/' + image.uri))
-
-        return textures
-
-    def load_materials(self, gltf, textures: list) -> list:
+    def load_materials(self, gltf: gltflib.GLTF2, textures: list) -> list:
         # read all the materials
         materials = []
         for mat in gltf.materials:
@@ -33,7 +25,7 @@ class GltfLoader:
 
         return materials
 
-    def load_meshes(self, gltf, materials: list) -> list:
+    def load_meshes(self, gltf: gltflib.GLTF2, materials: list) -> list:
         # read all the meshes
         meshes = []
         for node in gltf.nodes:
@@ -46,7 +38,7 @@ class GltfLoader:
 
         return meshes
 
-    def load_primitives(self, gltf, materials, mesh) -> list:
+    def load_primitives(self, gltf: gltflib.GLTF2, materials: list, mesh: gltflib.Mesh) -> list:
         # get the vertices for each primitive in the mesh
         primitives = []
         for primitive in mesh.primitives:
@@ -61,7 +53,7 @@ class GltfLoader:
 
         return primitives
 
-    def load_vertices(self, gltf, primitive) -> list:
+    def load_vertices(self, gltf: gltflib.GLTF2, primitive: gltflib.Primitive) -> list:
         # get all vertices
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.attributes.POSITION]
@@ -80,7 +72,7 @@ class GltfLoader:
 
         return vertices
 
-    def load_normals(self, gltf, primitive) -> list:
+    def load_normals(self, gltf: gltflib.GLTF2, primitive: gltflib.Primitive) -> list:
         # get all normals
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.attributes.NORMAL]
@@ -99,7 +91,7 @@ class GltfLoader:
 
         return normals
 
-    def load_uvs(self, gltf, primitive) -> list:
+    def load_uvs(self, gltf: gltflib.GLTF2, primitive: gltflib.Primitive) -> list:
         # get all uvs
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.attributes.TEXCOORD_0]
@@ -118,7 +110,7 @@ class GltfLoader:
 
         return uvs
 
-    def load_indices(self, gltf, primitive) -> list:
+    def load_indices(self, gltf: gltflib.GLTF2, primitive: gltflib.Primitive) -> list:
         # get all indices
         # get the binary data for this mesh primitive from the buffer
         accessor = gltf.accessors[primitive.indices]
